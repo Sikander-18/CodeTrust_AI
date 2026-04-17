@@ -133,6 +133,14 @@ class EvaluatorAgent:
             eval_data["passed_tests"] = objective_metrics["passed"]
             eval_data["total_tests"] = objective_metrics["total"]
 
+            # FORCE verdict to valid enum — LLM often writes descriptive text
+            # which permanently breaks the loop exit condition
+            raw_verdict = str(eval_data.get("verdict", "")).upper()
+            if "APPROVED" in raw_verdict or eval_data.get("trust_score", 0) >= 90:
+                eval_data["verdict"] = "APPROVED"
+            else:
+                eval_data["verdict"] = "NEEDS_REFINEMENT"
+
             return EvaluationReport(**eval_data)
         except Exception as e:
             print(f"Error parsing Evaluator response: {e}")

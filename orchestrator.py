@@ -37,6 +37,15 @@ class Orchestrator:
             # 1. Architect Stage — runs EVERY iteration so feedback is incorporated
             self.log("Architect", "Analyzing problem and generating technical specification...")
             spec = self.architect.analyze_problem(problem_description)
+
+            # Bug 1 Fix: Detect architect failure and retry ONCE before wasting
+            # an entire developer/test/eval cycle on a garbage fallback spec.
+            if spec.problem_name == "Error Analyzing Problem":
+                self.log("Architect", "⚠️ Spec parse failed. Retrying with cleaner prompt...")
+                spec = self.architect.analyze_problem(
+                    f"Analyze this DSA problem carefully and return ONLY valid JSON:\n\n{problem_description}"
+                )
+
             self.log("Architect", f"Spec generated: {spec.problem_name}")
 
             # 2. Developer Stage
@@ -114,16 +123,27 @@ class Orchestrator:
                     "iterations_used": iteration + 1,
                 }
 
-            # Self-Healing: feed feedback back into the problem for next iteration
+            # Self-Healing: Feed PRECISE failure information back for next iteration
+            # Extract only the failure details from stderr — not the entire output
+            stderr = execution_result["stderr"]
+            failure_lines = [
+                line for line in stderr.splitlines()
+                if any(kw in line for kw in ["FAIL", "ERROR", "AssertionError", "Exception", "Traceback"])
+            ]
+            failure_summary = "\n".join(failure_lines[:30]) if failure_lines else stderr[:500]
+
             self.log(
                 "Orchestrator",
-                "Code did not meet trust threshold. Starting self-healing loop...",
+                f"Feeding {parsed['failed']} specific failure(s) back to Architect...",
             )
             problem_description = (
-                f"{problem_description}\n\n"
-                f"REFINEMENT FEEDBACK FROM PREVIOUS RUN:\n{report.feedback}\n\n"
-                f"FAILED TESTS: {parsed['failed']}/{parsed['total']}\n"
-                f"STDERR OUTPUT:\n{execution_result['stderr']}"
+                f"{problem_description.split('REFINEMENT FEEDBACK')[0].strip()}\n\n"
+                f"=== PREVIOUS ATTEMPT FAILED ===\n"
+                f"Tests: {parsed['passed']}/{parsed['total']} passed | "
+                f"Pylint: {static['pylint_score']}/10\n"
+                f"Expert Feedback: {report.feedback}\n\n"
+                f"Specific Failures:\n{failure_summary}\n"
+                f"Fix these exact failures in your next implementation."
             )
             iteration += 1
 
