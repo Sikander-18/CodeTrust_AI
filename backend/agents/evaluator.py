@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
 from llm_client import LLMClient
 from agents.architect import TechnicalSpec
+from utils import extract_json_from_text
 import json
-import re
 
 
 class EvaluationReport(BaseModel):
@@ -15,53 +15,6 @@ class EvaluationReport(BaseModel):
     edge_case_resilience: str
     verdict: str  # "APPROVED" or "NEEDS_REFINEMENT"
     feedback: str
-
-
-def extract_json_from_text(text: str) -> dict:
-    """
-    Robustly extracts a JSON object from LLM output that may contain
-    markdown fences, explanations, or other surrounding text.
-    """
-    cleaned = text.strip()
-
-    # Strategy 1: Try the raw text as-is
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        pass
-
-    # Strategy 2: Strip markdown code fences
-    cleaned = cleaned.replace("```json", "").replace("```", "").strip()
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        pass
-
-    # Strategy 3: Find the first { ... } block using brace matching
-    start = cleaned.find("{")
-    if start != -1:
-        depth = 0
-        for i in range(start, len(cleaned)):
-            if cleaned[i] == "{":
-                depth += 1
-            elif cleaned[i] == "}":
-                depth -= 1
-                if depth == 0:
-                    candidate = cleaned[start : i + 1]
-                    try:
-                        return json.loads(candidate)
-                    except json.JSONDecodeError:
-                        break
-
-    # Strategy 4: Regex for JSON-like block
-    match = re.search(r"\{[\s\S]*\}", cleaned)
-    if match:
-        try:
-            return json.loads(match.group())
-        except json.JSONDecodeError:
-            pass
-
-    raise ValueError(f"Could not extract valid JSON from LLM response: {text[:200]}...")
 
 
 class EvaluatorAgent:
@@ -133,8 +86,7 @@ class EvaluatorAgent:
             eval_data["passed_tests"] = objective_metrics["passed"]
             eval_data["total_tests"] = objective_metrics["total"]
 
-            # FORCE verdict to valid enum — LLM often writes descriptive text
-            # which permanently breaks the loop exit condition
+            # FORCE verdict to valid enum
             raw_verdict = str(eval_data.get("verdict", "")).upper()
             if "APPROVED" in raw_verdict or eval_data.get("trust_score", 0) >= 90:
                 eval_data["verdict"] = "APPROVED"
@@ -146,7 +98,6 @@ class EvaluatorAgent:
             print(f"Error parsing Evaluator response: {e}")
             print(f"Raw response was: {response[:500]}")
 
-            # Compute a basic trust score from ground truth so it's not always 0
             if objective_metrics["total"] > 0:
                 raw_score = int(
                     (objective_metrics["passed"] / objective_metrics["total"]) * 100
@@ -179,11 +130,3 @@ class EvaluatorAgent:
                 feedback=f"Evaluator failed to return valid JSON. "
                 f"Ground-truth score: {objective_metrics['passed']}/{objective_metrics['total']} tests passed.",
             )
-
-
-if __name__ == "__main__":
-    from llm_client import LLMClient
-
-    client = LLMClient()
-    evaluator = EvaluatorAgent(client)
-    # Test call...

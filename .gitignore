@@ -1,40 +1,50 @@
-# Python
+# ── Python ───────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
+*.pyo
+*.pyd
 .Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+*.so
 
-# Virtual Environment
+# ── Virtual environments ─────────────────────────────────────────────
 venv/
+.venv/
+env/
 ENV/
+.env.local
 
-# Environment Variables
+# ── Environment / secrets ────────────────────────────────────────────
 .env
+backend/.env
+!backend/.env.example
+!.env.example
 
-# Streamlit
-.streamlit/
+# ── Build artefacts ──────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+.eggs/
 
-# IDEs
+# ── Node / Frontend ──────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ── IDE & OS ─────────────────────────────────────────────────────────
 .vscode/
 .idea/
-
-# OS
+*.swp
+*.swo
 .DS_Store
 Thumbs.db
+
+# ── Testing & coverage ───────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+*.xml
+
+# ── Logs ─────────────────────────────────────────────────────────────
+*.log
+logs/

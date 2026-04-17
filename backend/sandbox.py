@@ -12,12 +12,10 @@ def run_code_safely(solution_code: str, test_code: str, timeout: int = 15):
     we test the EXACT code the Developer agent wrote — not a copy.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Write the Developer's code to solution.py
         solution_path = os.path.join(tmpdir, "solution.py")
         with open(solution_path, "w") as f:
             f.write(solution_code)
 
-        # Prepend the import and write the test file
         full_test_code = f"from solution import *\n\n{test_code}"
         test_path = os.path.join(tmpdir, "test_solution.py")
         with open(test_path, "w") as f:
@@ -61,7 +59,6 @@ def parse_test_results(stderr_text: str) -> dict:
     failures = 0
     errors = 0
 
-    # unittest prints "Ran X test(s)" to stderr
     ran_match = re.search(r"Ran (\d+) test", stderr_text)
     if ran_match:
         total = int(ran_match.group(1))
@@ -106,7 +103,7 @@ def run_static_analysis(code: str) -> dict:
             if score_match:
                 result["pylint_score"] = score_match.group(1)
         except Exception:
-            pass  # pylint not installed or failed — keep N/A
+            pass
 
         # --- Radon (Cyclomatic Complexity) ---
         try:
@@ -116,7 +113,6 @@ def run_static_analysis(code: str) -> dict:
                 text=True,
                 timeout=30,
             )
-            # Radon prints "Average complexity: X (Y)" on the last meaningful line
             lines = radon_result.stdout.strip().splitlines()
             if lines:
                 last_line = lines[-1]
@@ -124,25 +120,6 @@ def run_static_analysis(code: str) -> dict:
                 if grade_match:
                     result["complexity_grade"] = grade_match.group(1)
         except Exception:
-            pass  # radon not installed or failed — keep N/A
+            pass
 
     return result
-
-
-if __name__ == "__main__":
-    sol = "def add(a, b):\n    return a + b"
-    tests = """import unittest
-
-class TestAdd(unittest.TestCase):
-    def test_basic(self):
-        self.assertEqual(add(1, 2), 3)
-    def test_negative(self):
-        self.assertEqual(add(-1, -2), -3)
-
-if __name__ == '__main__':
-    unittest.main()
-"""
-    res = run_code_safely(sol, tests)
-    print("Execution:", res)
-    print("Parsed:", parse_test_results(res["stderr"]))
-    print("Static:", run_static_analysis(sol))

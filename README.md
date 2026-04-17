@@ -1,97 +1,215 @@
-# Agentic Trust Laboratory 🧪
+# 🧪 Agentic Trust Laboratory
 
-### *Verifying AI-Generated Software Through Recursive Multi-Agent Loops*
+> **A production-ready multi-agent AI system that generates, adversarially tests, and verifies Python code for correctness, reliability, and trust.**
 
-![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
-![Python](https://img.shields.io/badge/Language-Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Groq](https://img.shields.io/badge/Engine-Groq-orange?style=for-the-badge&logo=fastapi&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-
-**Agentic Trust Laboratory** is a professional-grade multi-agent AI system designed to ensure that AI-generated code is not just "syntactically correct," but fundamentally trustworthy. By implementing a **recursive "Trust Loop"**, the system rigorously validates solutions for complex Data Structures and Algorithms (DSA) problems using adversarial testing and objective static analysis.
-
----
-
-## 🧠 The Agentic "Council"
-
-Unlike a single-prompt LLM, this system utilizes a team of specialized agents that critique and correct each other:
-
-1.  **The Architect**: Analyzes the problem and generates a strict technical specification and Big O constraints.
-2.  **The Developer**: Implements the solution in pure Python, following the Architect's spec.
-3.  **The Test Engineer**: Acts as an **Adversary**. It generates comprehensive test suites including **Random Stress Tests**, pattern-breakers, and deep state invariants.
-4.  **The Supreme Evaluator**: The final judge. It coordinates the execution in a sandbox, parses results, and calculates a **Trust Score** grounded in objective data.
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev)
+[![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-orange)](https://groq.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
 
-## 🚀 Advanced Features
+## 🔍 What It Does
 
-- **🛡️ Adversarial Resilience**: The system doesn't just check for "correctness"; it tries to **sabotage** the code with edge cases and high-frequency stress patterns.
-- **🔄 Self-Healing Loop**: If the evaluator finds issues, the feedback is fed back to the Architect and Developer for an **iterative refine-and-retry** cycle.
-- **📊 Grounded Metrics**: No more LLM hallucinations. Test passes are parsed using **regex from real output**, and code quality is measured via **Pylint** and **Radon (Cyclomatic Complexity)**.
-- **⚡ Ultra-Fast Inference**: Engineered for the **Groq LPU Inference Engine**, providing near-instant reasoning cycles.
-- **🔬 Transparency**: A real-time **"Thought Stream"** logs every agent's decision-making process for full observability.
+The Agentic Trust Laboratory takes a natural-language DSA problem description and runs it through a **self-healing multi-agent pipeline** that:
+
+1. **Architect** — Analyzes the problem → produces a strict `TechnicalSpec` (entry point, constraints, edge cases)
+2. **Developer** — Implements a validated Python solution matching the spec
+3. **Test Engineer** — Generates adversarial unit tests (stress tests, pattern-breakers, invariant checks)
+4. **Sandbox** — Executes code + tests in an isolated subprocess; runs `pylint` + `radon` for static analysis
+5. **Evaluator** — Scores the solution on a 0–100 **Trust Scale** (`A–F` grade) grounded in real test results
+6. **Orchestrator** — Feeds failure details back to the Architect and loops until APPROVED or max retries
+
+All steps stream to the browser in **real time** via Server-Sent Events (SSE).
 
 ---
 
-## ⚙️ Project Architecture
+## 🏗️ Project Structure
 
-```mermaid
-graph TD
-    A[User Problem] --> B[Architect Agent]
-    B --> C[Technical Spec]
-    C --> D[Developer Agent]
-    D --> E[Implementation Code]
-    E --> F[Test Engineer Agent]
-    F --> G[Adversarial Test Suite]
-    G --> H[Sandbox Executor]
-    H --> I[Pylint & Radon Analysis]
-    H --> J[Test Results Parsing]
-    I --> K[Evaluator Agent]
-    J --> K
-    K -->|Iteration & Feedback| B
-    K --> L[Trust Scorecard & Verdict]
+```
+Ai-code-validator/
+├── backend/                    # Python backend — all server logic
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   ├── architect.py        # TechnicalSpec generation
+│   │   ├── developer.py        # Code implementation
+│   │   ├── test_engineer.py    # Adversarial test generation
+│   │   └── evaluator.py        # Trust score evaluation
+│   ├── main.py                 # FastAPI app + SSE endpoint
+│   ├── orchestrator.py         # Pipeline logic + streaming generator
+│   ├── sandbox.py              # Isolated subprocess execution
+│   ├── llm_client.py           # Groq API wrapper with retries
+│   ├── utils.py                # Shared JSON extractor
+│   ├── requirements.txt        # Python dependencies
+│   └── .env.example            # Environment variable template
+│
+├── frontend/                   # React + Vite frontend
+│   ├── src/
+│   │   ├── hooks/
+│   │   │   └── usePipeline.js  # SSE consumer hook
+│   │   ├── components/
+│   │   │   ├── Header.jsx
+│   │   │   ├── InputPanel.jsx
+│   │   │   ├── CodePanel.jsx
+│   │   │   ├── MetricsPanel.jsx
+│   │   │   └── TabsSection.jsx
+│   │   ├── App.jsx
+│   │   ├── App.module.css
+│   │   ├── index.css           # Stitch Sentinel Core design tokens
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── vite.config.js          # Proxy: /api → localhost:8000
+│   └── package.json
+│
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 ---
 
-## 🛠️ Setup & Installation
+## ⚡ Quick Start
 
 ### Prerequisites
-- Python 3.9+
-- [Groq API Key](https://console.groq.com/keys)
 
-### 1. Clone & Install
+- Python 3.11+
+- Node.js 18+ and npm
+- A free [Groq API key](https://console.groq.com)
+
+### 1. Clone & configure
+
 ```bash
 git clone https://github.com/your-username/Ai-code-validator.git
 cd Ai-code-validator
+```
+
+Copy the environment template and add your key:
+
+```bash
+cp backend/.env.example backend/.env
+# Edit backend/.env and set GROQ_API_KEY=gsk_...
+```
+
+### 2. Install backend dependencies
+
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # macOS / Linux
+
 pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration
-Copy the example environment file and add your API key:
-```bash
-cp .env.example .env
-```
-Edit `.env` and paste your `GROQ_API_KEY`.
+### 3. Install frontend dependencies
 
-### 3. Run the Laboratory
 ```bash
-streamlit run app.py
+cd ../frontend
+npm install
 ```
 
+### 4. Run (two terminals)
+
+**Terminal 1 — Backend:**
+```bash
+# From project root
+uvicorn backend.main:app --reload --port 8000
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd frontend
+npm run dev
+# Open http://localhost:5173
+```
+
 ---
 
-## 🔬 Verifying Trust
+## 🤖 Agent Architecture
 
-When evaluating a solution, the system provides:
-- **Trust Grade (A-F)**: A balanced grade based on passing tests and efficiency.
-- **Pylint Score**: Objective code quality rating.
-- **Complexity Grade**: Radon-measured cyclomatic complexity.
-- **Adversarial Status**: 🛡️ Secure vs ❌ Vulnerable badge.
+```
+Problem Input
+    │
+    ▼
+┌──────────────────────────────────────────────────────────┐
+│                     ORCHESTRATOR                         │
+│  ┌───────────┐   ┌───────────┐   ┌──────────────────┐   │
+│  │ Architect │──▶│ Developer │──▶│  Test Engineer   │   │
+│  └───────────┘   └───────────┘   └──────────────────┘   │
+│        │                 │               │               │
+│        │         ┌───────┴───────┐       │               │
+│        │         │    Sandbox    │◀──────┘               │
+│        │         │ (subprocess)  │                       │
+│        │         └───────┬───────┘                       │
+│        │                 │ metrics                       │
+│        │         ┌───────▼───────┐                       │
+│        │         │   Evaluator   │                       │
+│        │         └───────┬───────┘                       │
+│        │                 │ NEEDS_REFINEMENT               │
+│        └─────────────────┘ (feedback loop)               │
+│                           │ APPROVED / max retries       │
+└───────────────────────────┼──────────────────────────────┘
+                            ▼
+                     Final Result (SSE stream)
+```
 
 ---
 
-## ⚖️ License
-Distributed under the MIT License. See `LICENSE` for more information.
+## 📊 Trust Score Scale
+
+| Grade | Score | Meaning |
+|:-----:|:-----:|:--------|
+| **A** | 90–100 | Optimal — passes all adversarial stress tests |
+| **B** | 80–89  | Correct — passes standard, minor stress issues |
+| **C** | 70–79  | Correct but inefficient or memory-growth risk |
+| **D** | 50–69  | Fails adversarial tests, passes basic logic |
+| **F** | < 50   | Major logic failures |
 
 ---
-Designed for **Professional Internship Portfolio** | Powered by **Groq Llama 3.3** ⚡
+
+## 🌊 SSE Event Schema
+
+The `/api/generate` endpoint streams newline-delimited JSON events:
+
+| Type | Fields | Description |
+|:-----|:-------|:------------|
+| `log` | `agent`, `message`, `timestamp` | Agent thought-stream |
+| `progress` | `iteration`, `max_retries`, `step` | Pipeline step indicator |
+| `code` | `content` | Generated Python implementation |
+| `tests` | `content` | Generated adversarial test suite |
+| `execution` | `stdout`, `stderr` | Raw sandbox output |
+| `metrics` | `data` | Ground-truth test + static analysis numbers |
+| `report` | `data` | Full `EvaluationReport` object |
+| `done` | `result` | Final packaged result |
+| `error` | `message` | Non-fatal pipeline error |
+
+---
+
+## 🛠️ Key Design Decisions
+
+- **No hallucinated metrics** — `passed_tests` and `total_tests` are always overridden with ground-truth values from `parse_test_results()`; the LLM cannot fabricate scores
+- **Robust JSON parsing** — `extract_json_from_text()` uses 4-strategy cascade (raw → strip fences → brace-depth matching → regex) shared across all agents
+- **Entry-point enforcement** — Developer and Test Engineer always receive the explicit `entry_point` from the spec in their prompts; generated code is validated via `compile()` before use
+- **Self-healing loop** — Only the specific failure lines from stderr are fed back, not the whole output, keeping the context focused
+- **Streaming-first** — `run_pipeline_stream()` is a Python generator; FastAPI wraps it in an SSE response with no buffering
+
+---
+
+## 📦 Tech Stack
+
+| Layer | Technology |
+|:------|:----------|
+| LLM | Groq — `llama-3.3-70b-versatile` |
+| Backend | FastAPI + Uvicorn |
+| Agent framework | Custom Python (no LangChain) |
+| Static analysis | pylint + radon |
+| Frontend | React 18 + Vite |
+| UI design tokens | Stitch MCP — Sentinel Core |
+| Code highlighting | react-syntax-highlighter (vscDarkPlus) |
+
+---
+
+## 📝 License
+
+MIT © 2025 — see [LICENSE](LICENSE)

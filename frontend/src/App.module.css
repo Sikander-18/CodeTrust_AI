@@ -1,0 +1,36 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.split {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.split > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 11.5px;
+  color: var(--outline);
+  border-top: 1px solid rgba(65, 71, 82, 0.25);
+  font-family: var(--font-mono);
+}

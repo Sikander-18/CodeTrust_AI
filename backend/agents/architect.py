@@ -1,11 +1,15 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List
 from llm_client import LLMClient
+from utils import extract_json_from_text
 import json
+
 
 class TechnicalSpec(BaseModel):
     problem_name: str
-    entry_point: str = Field(description="The main function or class name to test, e.g. 'LFUCache' or 'max_subarray'")
+    entry_point: str = Field(
+        description="The main function or class name to implement, e.g. 'LFUCache' or 'max_subarray'"
+    )
     logic_requirements: List[str] = Field(description="Core functional requirements")
     constraints: List[str] = Field(description="Time and space complexity constraints")
     edge_cases: List[str] = Field(description="Specific edge cases to handle")
@@ -23,39 +27,42 @@ class ArchitectAgent:
         2. Big O complexity constraints (Time & Space).
         3. Critical edge cases (empty inputs, large values, duplicates, etc.).
         4. Optimal choice of data structures.
+        5. The exact entry_point name (function or class) the Developer must implement.
         
-        OUTPUT ONLY VALID JSON that matches the provided schema.
+        OUTPUT ONLY VALID JSON that matches the provided schema. No markdown, no extra text.
         """
 
     def analyze_problem(self, problem_description: str) -> TechnicalSpec:
-        user_prompt = f"Analyze this problem and provide a technical spec:\n\n{problem_description}"
-        
-        # We add schema instructions to ensure the LLM follows the Pydantic model
-        schema_instruction = f"\n\nReturn the result as JSON matching this structure: {TechnicalSpec.model_json_schema()}"
-        
-        response = self.client.generate(self.system_prompt, user_prompt + schema_instruction)
-        
+        schema_instruction = (
+            f"\n\nReturn ONLY a valid JSON object matching this schema exactly:\n"
+            f"{json.dumps(TechnicalSpec.model_json_schema(), indent=2)}"
+        )
+        user_prompt = (
+            f"Analyze this problem and provide a technical spec:\n\n{problem_description}"
+            + schema_instruction
+        )
+
+        response = self.client.generate(self.system_prompt, user_prompt)
+
         try:
-            # Strip any markdown code blocks if present
-            clean_json = response.strip().replace("```json", "").replace("```", "").strip()
-            spec_data = json.loads(clean_json)
+            spec_data = extract_json_from_text(response)
             return TechnicalSpec(**spec_data)
         except Exception as e:
-            # Fallback/Error handling
-            print(f"Error parsing Architect response: {e}")
+            print(f"[ArchitectAgent] Error parsing response: {e}")
             return TechnicalSpec(
                 problem_name="Error Analyzing Problem",
                 entry_point="solution",
                 logic_requirements=["Error in analysis"],
                 constraints=["N/A"],
                 edge_cases=["N/A"],
-                suggested_data_structures=["N/A"]
+                suggested_data_structures=["N/A"],
             )
 
+
 if __name__ == "__main__":
-    # Test the architect
-    from llm_client import LLMClient
     client = LLMClient()
     architect = ArchitectAgent(client)
-    spec = architect.analyze_problem("Write a function to find the first non-repeating character in a string.")
+    spec = architect.analyze_problem(
+        "Write a function to find the first non-repeating character in a string."
+    )
     print(spec.model_dump_json(indent=2))
